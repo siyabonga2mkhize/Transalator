@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Azure Translator UI</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 2rem; }
+    .row { display: flex; gap: 1rem; margin-bottom: .75rem; flex-wrap: wrap; }
+    label { min-width: 160px; font-weight: 600; }
+    textarea { width: 100%; min-height: 120px; }
+    select, input[type="text"] { min-width: 220px; }
+    button { padding: .6rem 1.2rem; font-weight: 600; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; }
+    .muted { color: #666; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .error { color: #b00020; }
+    .success { color: #006400; }
+  .field { display: flex; flex-direction: column; gap: .4rem; min-width: 280px; flex: 1 1 320px; }
+  #usage { white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <h1>Azure Translator</h1>
+  <p class="muted">Enter up to 5000 characters. Choose languages and optional settings, then click Translate.</p>
+
+  <div class="card">
+    <div class="row">
+      <label for="sourceText">Source text</label>
+    </div>
+    <div class="row">
+      <textarea id="sourceText" maxlength="5000" placeholder="Type or paste text (max 5000 chars)"></textarea>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="sourceLang">Source language</label>
+        <select id="sourceLang"></select>
+      </div>
+      <div class="field">
+        <label for="targetLang">Target language</label>
+        <select id="targetLang"></select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="deployment">Model (optional)</label>
+        <select id="deployment"></select>
+      </div>
+      <div class="field">
+        <label for="gender">Gender (optional)</label>
+        <select id="gender">
+          <option value="">-- none --</option>
+          <option value="female">female</option>
+          <option value="male">male</option>
+          <option value="neutral">neutral</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="tone">Tone (optional)</label>
+        <select id="tone">
+          <option value="">-- none --</option>
+          <option value="formal">formal</option>
+          <option value="informal">informal</option>
+          <option value="neutral">neutral</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <button id="translateBtn">Translate</button>
+      <span id="status" class="muted"></span>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:1rem;">
+    <div class="card">
+      <h3>Translated text</h3>
+      <div id="translated" class="mono"></div>
+    </div>
+    <div class="card">
+      <h3>Usage & headers</h3>
+      <div id="usage" class="mono"></div>
+    </div>
+    <div class="card">
+      <details id="rawDetails">
+        <summary><strong>Raw response (debug)</strong></summary>
+        <pre id="raw" class="mono"></pre>
+      </details>
+    </div>
+  </div>
+
+  <script>
+  // Model options; empty means no preference.
+  const MODEL_DEPLOYMENTS = ["", "gpt-4o", "gpt-4o-mini"];
+
+    const sourceSel = document.getElementById('sourceLang');
+    const targetSel = document.getElementById('targetLang');
+    const deploymentSel = document.getElementById('deployment');
+
+    async function loadLanguages() {
+      try {
+        const res = await fetch('/api/languages');
+        const data = await res.json();
+        const languages = (data && data.languages) || [];
+
+        // Source has an auto option
+        const auto = document.createElement('option');
+        auto.value = '';
+        auto.textContent = '-- auto / unspecified --';
+        sourceSel.appendChild(auto);
+
+        for (const lang of languages) {
+          const label = `${lang.name || lang.code}${lang.nativeName ? ' — ' + lang.nativeName : ''}`;
+          const o1 = document.createElement('option'); o1.value = lang.code; o1.textContent = label; sourceSel.appendChild(o1);
+          const o2 = document.createElement('option'); o2.value = lang.code; o2.textContent = label; targetSel.appendChild(o2);
+        }
+
+        sourceSel.value = 'en';
+        targetSel.value = 'es';
+      } catch (e) {
+        console.error('Failed to load languages', e);
+        // Fallback minimal list if API fails
+        const fallback = [['', '-- auto / unspecified --'], ['en','English'], ['es','Spanish']];
+        for (const [code, name] of fallback) {
+          const o1 = document.createElement('option'); o1.value = code; o1.textContent = name; sourceSel.appendChild(o1);
+          if (code) { // do not add auto/unspecified to target list
+            const o2 = document.createElement('option'); o2.value = code; o2.textContent = name; targetSel.appendChild(o2);
+          }
+        }
+        sourceSel.value = 'en';
+        targetSel.value = 'es';
+      }
+    }
+    loadLanguages();
+
+    for (const d of MODEL_DEPLOYMENTS) {
+      const opt = document.createElement('option');
+      opt.value = d; opt.textContent = d || '-- none --';
+      deploymentSel.appendChild(opt);
+    }
+
+    const btn = document.getElementById('translateBtn');
+    const status = document.getElementById('status');
+    const translated = document.getElementById('translated');
+    const usage = document.getElementById('usage');
+  const raw = document.getElementById('raw');
+  const rawDetails = document.getElementById('rawDetails');
+
+    btn.addEventListener('click', async () => {
+      translated.textContent = '';
+      usage.textContent = '';
+      raw.textContent = '';
+
+      const text = document.getElementById('sourceText').value.trim();
+      const sourceLanguage = sourceSel.value;
+      const targetLanguage = targetSel.value;
+      const deploymentName = deploymentSel.value;
+      const gender = document.getElementById('gender').value;
+      const tone = document.getElementById('tone').value;
+
+      if (!text) { status.textContent = 'Please enter text.'; return; }
+      if (text.length > 5000) { status.textContent = 'Text exceeds 5000 characters.'; return; }
+  if (!targetLanguage) { status.textContent = 'Select a target language.'; return; }
+
+      status.textContent = 'Translating…';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            sourceLanguage,
+            targetLanguage,
+            deploymentName: deploymentName || null,
+            gender: gender || null,
+            tone: tone || null
+          })
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.ok === false) {
+          status.textContent = `Error ${data.status || res.status}`;
+          status.className = 'error';
+          if (rawDetails) rawDetails.setAttribute('open', '');
+        } else {
+          status.textContent = 'Done';
+          status.className = 'success';
+          if (rawDetails) rawDetails.removeAttribute('open');
+        }
+
+        translated.textContent = (data.translatedTexts && data.translatedTexts.length)
+          ? data.translatedTexts.join('\n\n')
+          : '(No text nodes found in response)';
+
+        const h = data.headers || {};
+        usage.textContent =
+          `Characters charged: ${h.charactersCharged ?? 'n/a'}\n` +
+          `Source tokens charged: ${h.sourceTokensCharged ?? 'n/a'}\n` +
+          `Target tokens charged: ${h.targetTokensCharged ?? 'n/a'}\n` +
+          `Response time: ${data.responseTimeMs ?? '?'} ms\n` +
+          `x-requestid: ${h.xRequestId ?? 'n/a'}`;
+
+        raw.textContent = data.rawText || JSON.stringify(data.rawBody, null, 2);
+      } catch (e) {
+        console.error(e);
+        status.textContent = 'Request failed.';
+        status.className = 'error';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
