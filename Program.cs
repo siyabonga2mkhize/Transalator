@@ -68,7 +68,6 @@ app.MapPost("/api/translate", async Task<Results<BadRequest<string>, JsonHttpRes
 
     message.Headers.Add("Ocp-Apim-Subscription-Key", opts.Key);
     message.Headers.Add("Ocp-Apim-Subscription-Region", opts.Region);
-    message.Headers.Add("preview-api", "true");
 
     var sw = Stopwatch.StartNew();
     using var response = await client.SendAsync(message);
@@ -249,3 +248,4 @@ class AzureTranslatorOptions
 }
 
 record LanguageItem(string code, string? name, string? nativeName, string? dir);
+
