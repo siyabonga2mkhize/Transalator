@@ -1,269 +1,63 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Vulavula Translator – Sovereign AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>isiZulu Energy Intelligence | KZN Computer Labs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>body{font-family:Inter,ui-sans-serif,system-ui,sans-serif}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}</style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+<header class="border-b border-slate-800 bg-slate-950/95 sticky top-0 z-20">
+  <div class="max-w-7xl mx-auto px-5 py-4 flex flex-wrap gap-4 items-center justify-between">
+    <div><div class="text-xs uppercase tracking-[.25em] text-emerald-400">Ubuntu Builders · EPIP 2026</div><h1 class="text-2xl font-bold">isiZulu Energy Intelligence</h1><p class="text-sm text-slate-400">Computer-level energy waste detection for KZN labs</p></div>
+    <div class="flex items-center gap-3"><span id="serviceState" class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 text-xs border border-emerald-500/20">● System ready</span><button id="scanBtn" class="px-4 py-2 rounded-lg bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400">Run lab scan</button></div>
+  </div>
+</header>
+<main class="max-w-7xl mx-auto px-5 py-7 space-y-6">
+  <section class="grid md:grid-cols-4 gap-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5"><p class="text-xs text-slate-400">COMPUTERS MONITORED</p><p id="computerCount" class="text-3xl font-bold mt-2">—</p><p class="text-xs text-slate-500 mt-1">computer-level visibility</p></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5"><p class="text-xs text-slate-400">WASTE ALERTS</p><p id="wasteAlerts" class="text-3xl font-bold text-amber-300 mt-2">—</p><p class="text-xs text-slate-500 mt-1">idle / overnight patterns</p></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5"><p class="text-xs text-slate-400">EST. ENERGY TODAY</p><p id="kwh" class="text-3xl font-bold mt-2">—</p><p class="text-xs text-slate-500 mt-1">kWh estimated from telemetry</p></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5"><p class="text-xs text-slate-400">EST. CARBON</p><p id="carbon" class="text-3xl font-bold mt-2">—</p><p class="text-xs text-slate-500 mt-1">kg CO₂e demo estimate</p></div>
+  </section>
 
-    <!-- Header Navigation -->
-    <header class="bg-white border-b border-slate-200">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-sm">
-                    V
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold text-slate-900 leading-tight">Vulavula Translator</h1>
-                    <p class="text-xs text-slate-500">Sovereign AI Translation Platform</p>
-                </div>
-            </div>
-            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span> API Ready
-            </span>
-        </div>
-    </header>
+  <section class="grid lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-800 flex justify-between"><div><h2 class="font-semibold">Computer-level telemetry</h2><p class="text-xs text-slate-500">The prototype shows the exact machine responsible for an alert.</p></div><span id="timestamp" class="text-xs text-slate-500"></span></div>
+      <div class="overflow-auto max-h-[480px]"><table class="w-full text-sm"><thead class="bg-slate-950 sticky top-0"><tr class="text-left text-xs text-slate-500"><th class="px-5 py-3">Computer</th><th>Lab</th><th>CPU</th><th>Watts*</th><th>Hours</th><th>State</th><th class="px-5">Action</th></tr></thead><tbody id="computerRows"></tbody></table></div>
+      <div class="px-5 py-3 text-xs text-slate-600 border-t border-slate-800">* Prototype watts are estimated telemetry inputs. Production agents will report measured/validated device energy data.</div>
+    </div>
 
-    <!-- Main Content Area -->
-    <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <h2 class="font-semibold">🚨 isiZulu alerts</h2><p class="text-xs text-slate-500 mt-1">Detection → technical message → isiZulu</p>
+      <div id="alerts" class="space-y-3 mt-5"></div>
+      <button id="translateAlertBtn" class="w-full mt-5 px-4 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-400 font-semibold">Translate selected alert</button>
+    </div>
+  </section>
 
-        <!-- Controls Bar -->
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div>
-                    <label for="sourceLang" class="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Source Language</label>
-                    <select id="sourceLang" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2.5 font-medium"></select>
-                </div>
-
-                <div>
-                    <label for="targetLang" class="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Target Language</label>
-                    <select id="targetLang" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2.5 font-medium"></select>
-                </div>
-
-                <div>
-                    <label for="deployment" class="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Model (Optional)</label>
-                    <select id="deployment" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2.5">
-                        <option value="">Default Model</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label for="gender" class="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Gender (Optional)</label>
-                    <select id="gender" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2.5">
-                        <option value="">Auto / None</option>
-                        <option value="female">Female</option>
-                        <option value="male">Male</option>
-                        <option value="neutral">Neutral</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label for="tone" class="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Tone (Optional)</label>
-                    <select id="tone" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2.5">
-                        <option value="">Auto / None</option>
-                        <option value="formal">Formal</option>
-                        <option value="informal">Informal</option>
-                        <option value="neutral">Neutral</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Interactive Workbench Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-            <!-- Input Workspace -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col h-[380px]">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Input Text</span>
-                    <span id="charCount" class="text-xs text-slate-400">0 / 5000</span>
-                </div>
-                <textarea id="sourceText" maxlength="5000" placeholder="Type or paste text here to translate..." class="w-full flex-grow resize-none border-0 focus:ring-0 text-slate-800 placeholder-slate-400 text-base p-0 outline-none"></textarea>
-
-                <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <span id="status" class="text-sm font-medium"></span>
-                    <button id="translateBtn" class="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold py-2.5 px-6 rounded-lg shadow-sm transition-all flex items-center gap-2">
-                        <span>Translate</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Output Workspace -->
-            <div class="bg-slate-100 rounded-xl border border-slate-200 p-4 flex flex-col h-[380px]">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Translation</span>
-                </div>
-                <div id="translated" class="w-full flex-grow overflow-y-auto text-slate-900 text-base leading-relaxed whitespace-pre-wrap font-sans"></div>
-            </div>
-
-        </div>
-
-        <!-- Telemetry & Response Diagnostics Section -->
-        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm md:col-span-1">
-                <h3 class="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    Usage Details
-                </h3>
-                <pre id="usage" class="font-mono text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 overflow-x-auto whitespace-pre-wrap leading-relaxed">No request data available.</pre>
-            </div>
-
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm md:col-span-2">
-                <details id="rawDetails" class="group">
-                    <summary class="text-sm font-semibold text-slate-900 cursor-pointer flex items-center justify-between list-none">
-                        <span class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                            Raw Diagnostics Response
-                        </span>
-                        <span class="text-slate-400 group-open:rotate-180 transition-transform">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </span>
-                    </summary>
-                    <pre id="raw" class="font-mono text-xs text-slate-600 bg-slate-900 text-emerald-400 p-4 rounded-lg mt-3 overflow-x-auto max-h-60 leading-relaxed"></pre>
-                </details>
-            </div>
-
-        </div>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 mt-12 py-4 text-center text-xs text-slate-400">
-        Vulavula Sovereign AI Engine &bull; All systems operational
-    </footer>
-
-    <script>
-        // STATIC LANGUAGE LIST
-        const LANGUAGES = [
-            { code: 'en', name: 'English' },
-            { code: 'zu', name: 'isiZulu' },
-            { code: 'xh', name: 'isiXhosa' },
-            { code: 'af', name: 'Afrikaans' },
-        ];
-
-        const sourceSel = document.getElementById('sourceLang');
-        const targetSel = document.getElementById('targetLang');
-        const sourceText = document.getElementById('sourceText');
-        const charCount = document.getElementById('charCount');
-
-        // Character counter logic
-        sourceText.addEventListener('input', () => {
-            charCount.textContent = `${sourceText.value.length} / 5000`;
-        });
-
-        // Populate language options
-        for (const lang of LANGUAGES) {
-            const opt1 = document.createElement('option');
-            opt1.value = lang.code;
-            opt1.textContent = lang.name;
-            sourceSel.appendChild(opt1);
-
-            const opt2 = document.createElement('option');
-            opt2.value = lang.code;
-            opt2.textContent = lang.name;
-            targetSel.appendChild(opt2);
-        }
-
-        sourceSel.value = 'en';
-        targetSel.value = 'zu';
-
-        // Translate logic
-        const btn = document.getElementById('translateBtn');
-        const status = document.getElementById('status');
-        const translated = document.getElementById('translated');
-        const usage = document.getElementById('usage');
-        const raw = document.getElementById('raw');
-        const rawDetails = document.getElementById('rawDetails');
-
-        btn.addEventListener('click', async () => {
-            translated.textContent = '';
-            usage.textContent = '';
-            raw.textContent = '';
-            status.className = 'text-sm font-medium';
-
-            const text = sourceText.value.trim();
-            const sourceLanguage = sourceSel.value;
-            const targetLanguage = targetSel.value;
-            const deploymentName = document.getElementById('deployment').value;
-            const gender = document.getElementById('gender').value;
-            const tone = document.getElementById('tone').value;
-
-            if (!text) {
-                status.textContent = 'Please enter text.';
-                status.classList.add('text-amber-600');
-                return;
-            }
-            if (text.length > 5000) {
-                status.textContent = 'Text exceeds 5000 characters.';
-                status.classList.add('text-amber-600');
-                return;
-            }
-
-            status.textContent = 'Translating…';
-            status.classList.add('text-indigo-600');
-            btn.disabled = true;
-
-            try {
-                const res = await fetch('/api/translate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        text,
-                        sourceLanguage,
-                        targetLanguage,
-                        deploymentName: deploymentName || null,
-                        gender: gender || null,
-                        tone: tone || null
-                    })
-                });
-                const data = await res.json();
-
-                if (!res.ok || data.ok === false) {
-                    status.textContent = `Error ${data.status || res.status}`;
-                    status.classList.remove('text-indigo-600');
-                    status.classList.add('text-rose-600');
-                    if (rawDetails) rawDetails.setAttribute('open', '');
-                } else {
-                    status.textContent = 'Translation Complete';
-                    status.classList.remove('text-indigo-600');
-                    status.classList.add('text-emerald-600');
-                    if (rawDetails) rawDetails.removeAttribute('open');
-                }
-
-                translated.textContent = (data.translatedTexts && data.translatedTexts.length)
-                    ? data.translatedTexts.join('\n\n')
-                    : '(No text nodes found in response)';
-
-                const h = data.headers || {};
-                usage.textContent =
-                    `Characters charged: ${h.charactersCharged ?? 'n/a'}\n` +
-                    `Source tokens: ${h.sourceTokensCharged ?? 'n/a'}\n` +
-                    `Target tokens: ${h.targetTokensCharged ?? 'n/a'}\n` +
-                    `Latency: ${data.responseTimeMs ?? '?'} ms\n` +
-                    `Request ID: ${h.xRequestId ?? 'n/a'}`;
-
-                raw.textContent = data.rawText || JSON.stringify(data.rawBody, null, 2);
-            } catch (e) {
-                console.error(e);
-                status.textContent = 'Request failed.';
-                status.classList.remove('text-indigo-600');
-                status.classList.add('text-rose-600');
-            } finally {
-                btn.disabled = false;
-            }
-        });
-    </script>
-</body>
-</html>
+  <section class="grid lg:grid-cols-2 gap-6">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <div class="flex items-center justify-between"><div><h2 class="font-semibold">Language intelligence</h2><p class="text-xs text-slate-500">Secure server-side connection to the African language service.</p></div><span id="translationMode" class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-400">Waiting</span></div>
+      <div class="mt-5 grid grid-cols-2 gap-3"><div class="bg-slate-950 rounded-xl p-4"><p class="text-xs text-slate-500">ENGLISH DIAGNOSTIC</p><p id="englishAlert" class="mt-2 text-sm">Run a scan and select an alert.</p></div><div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4"><p class="text-xs text-emerald-400">ISIZULU OPERATOR MESSAGE</p><p id="zuluAlert" class="mt-2 text-sm text-emerald-200">—</p></div></div>
+      <div class="mt-4 flex gap-2"><button class="quick px-3 py-2 rounded-lg bg-slate-800 text-xs hover:bg-slate-700" data-text="Computer 14 is idle and wasting electricity. Please switch it off now.">Idle computer</button><button class="quick px-3 py-2 rounded-lg bg-slate-800 text-xs hover:bg-slate-700" data-text="Computer 14 has been running overnight. Please switch it off now.">Overnight run</button></div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5"><h2 class="font-semibold">Demo flow for the judges</h2><ol class="mt-4 space-y-3 text-sm text-slate-300"><li><b class="text-emerald-400">01</b> Click <b>Run lab scan</b>.</li><li><b class="text-emerald-400">02</b> Point to a specific computer flagged as <b>Waste detected</b>.</li><li><b class="text-emerald-400">03</b> Click <b>Translate selected alert</b>.</li><li><b class="text-emerald-400">04</b> Show how the technical English alert becomes an isiZulu operator instruction.</li><li><b class="text-emerald-400">05</b> Explain that the same pipeline can receive real agent heartbeats from lab PCs.</li></ol><div class="mt-5 p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-500">This prototype deliberately distinguishes estimated demo telemetry from production metering. The presentation should demonstrate the workflow without claiming that a normal PC can measure mains electricity by software alone.</div></div>
+  </section>
+</main>
+<script>
+let dashboard=null, selectedAlert=null;
+const $=id=>document.getElementById(id);
+async function load(path,options){const r=await fetch(path,options);return await r.json()}
+function render(d){dashboard=d;$('computerCount').textContent=d.computerCount;$('wasteAlerts').textContent=d.wasteAlerts;$('kwh').textContent=d.estimatedKwhToday+' kWh';$('carbon').textContent=d.estimatedCarbonKg+' kg';$('timestamp').textContent=new Date(d.timestamp).toLocaleTimeString();
+$('computerRows').innerHTML=d.computers.map(c=>`<tr class="border-t border-slate-800 ${c.status==='Waste detected'?'bg-amber-500/5':''}"><td class="px-5 py-3 font-medium">${c.computerId}</td><td>${c.room}</td><td>${c.cpuPercent}%</td><td>${c.watts}</td><td>${c.hoursObserved}</td><td><span class="px-2 py-1 rounded-full text-xs ${c.status==='Waste detected'?'bg-amber-500/10 text-amber-300':'bg-emerald-500/10 text-emerald-300'}">${c.condition}</span></td><td class="px-5"><button class="select text-xs text-indigo-300 hover:text-indigo-200" data-id="${c.computerId}">Inspect</button></td></tr>`).join('');
+$('alerts').innerHTML=d.alerts.length?d.alerts.map((a,i)=>`<button class="alertCard w-full text-left p-3 rounded-xl border ${i===0?'border-amber-500/40 bg-amber-500/10':'border-slate-800 bg-slate-950'}" data-i="${i}"><div class="flex justify-between"><b class="text-sm">${a.computerId}</b><span class="text-xs text-amber-300">${a.severity}</span></div><p class="text-xs text-slate-400 mt-1">${a.message}</p></button>`).join(''):'<p class="text-sm text-slate-500">No alerts.</p>';
+selectAlert(0);document.querySelectorAll('.alertCard').forEach(x=>x.onclick=()=>selectAlert(Number(x.dataset.i)));document.querySelectorAll('.select').forEach(x=>x.onclick=()=>selectComputer(x.dataset.id));}
+function selectAlert(i){if(!dashboard||!dashboard.alerts[i])return;selectedAlert=dashboard.alerts[i];$('englishAlert').textContent=selectedAlert.message;}
+function selectComputer(id){const c=dashboard.computers.find(x=>x.computerId===id);if(!c)return;selectedAlert={computerId:c.computerId,message:`${c.computerId} is ${c.condition.toLowerCase()}. Estimated waste: ${c.estimatedKwhToday.toFixed(2)} kWh today.`,severity:'High'};$('englishAlert').textContent=selectedAlert.message;window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});}
+async function translate(text){$('serviceState').textContent='● Translating…';$('zuluAlert').textContent='…';try{const d=await load('/api/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,sourceLanguage:'en',targetLanguage:'zu'})});if(!d.ok){$('zuluAlert').textContent='Translation service error: '+(d.error||'unknown');$('translationMode').textContent='Error';return}$('zuluAlert').textContent=d.translatedTexts?.[0]||'No translation returned';$('translationMode').textContent=d.mode==='vulavula'?'Vulavula live':'Demo fallback';$('serviceState').textContent='● System ready'}catch(e){$('zuluAlert').textContent='Request failed';$('translationMode').textContent='Error';$('serviceState').textContent='● API unavailable'}}
+$('scanBtn').onclick=async()=>{ $('serviceState').textContent='● Scanning…';render(await load('/api/energy/scan',{method:'POST'}));$('serviceState').textContent='● Live scan complete'};
+$('translateAlertBtn').onclick=()=>selectedAlert&&translate(selectedAlert.message);
+document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>translate(b.dataset.text));
+load('/api/energy/dashboard').then(render).catch(()=>{$('serviceState').textContent='● API unavailable'});
+</script>
+</body></html>
