@@ -12,6 +12,7 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.MapGet("/api/energy/dashboard", () => Results.Ok(EnergyDemo.CreateSnapshot()));
+app.MapGet("/api/energy/history", () => Results.Ok(EnergyDemo.CreateHistory()));
 app.MapPost("/api/energy/scan", () => Results.Ok(EnergyDemo.CreateSnapshot(true)));
 app.MapPost("/api/energy/heartbeat", (EnergyHeartbeat heartbeat) =>
 {
@@ -51,7 +52,6 @@ app.MapPost("/api/translate", async Task<IResult> (
         {
             Content = new StringContent(JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json")
         };
-        // Lelapa's published Vulavula examples use X-CLIENT-TOKEN authentication.
         message.Headers.TryAddWithoutValidation("X-CLIENT-TOKEN", apiKey);
 
         var sw = Stopwatch.StartNew();
@@ -100,6 +100,13 @@ static string NormalizeLanguage(string language, string fallback)
         "zu" => "zul_Latn",
         "xh" => "xho_Latn",
         "af" => "afr_Latn",
+        "st" => "sot_Latn",
+        "tn" => "tsn_Latn",
+        "nso" => "nso_Latn",
+        "ss" => "ssw_Latn",
+        "ve" => "ven_Latn",
+        "ts" => "tso_Latn",
+        "nr" => "nbl_Latn",
         _ => value
     };
 }
@@ -178,11 +185,26 @@ public static class EnergyDemo
 
         var waste = computers.Where(c => c.Status == "Waste detected").ToList();
         var kwhTotal = computers.Sum(c => c.EstimatedKwhToday);
-        var carbon = Math.Round(kwhTotal * .708, 2); // demo factor; make configurable for deployment
+        var carbon = Math.Round(kwhTotal * .708, 2);
         return new EnergyDashboard(DateTimeOffset.Now, computers.Count, waste.Count, Math.Round(kwhTotal, 2), carbon,
             Math.Round(waste.Sum(c => c.EstimatedKwhToday), 2), computers,
             waste.Take(5).Select(c => new EnergyAlert(c.ComputerId,
                 $"{c.ComputerId} is {c.Condition.ToLowerInvariant()}. Estimated waste: {c.EstimatedKwhToday:0.00} kWh today.", "High")).ToList());
+    }
+
+    public static List<EnergyHistoryPoint> CreateHistory()
+    {
+        var today = DateTime.Today;
+        var values = new (double kwh, int alerts)[]
+        {
+            (18.7, 7), (20.1, 9), (17.9, 6), (22.4, 11), (21.2, 10), (19.3, 8), (23.6, 12)
+        };
+        return values.Select((v, i) =>
+        {
+            var date = today.AddDays(i - (values.Length - 1));
+            var carbon = Math.Round(v.kwh * .708, 2);
+            return new EnergyHistoryPoint(date, Math.Round(v.kwh, 2), v.alerts, carbon, Math.Round(v.alerts * .62, 2));
+        }).ToList();
     }
 
     public static EnergyComputer FromHeartbeat(EnergyHeartbeat h)
@@ -214,3 +236,4 @@ public record EnergyHeartbeat(string ComputerId, string? Room, double CpuPercent
 public record EnergyDashboard(DateTimeOffset Timestamp, int ComputerCount, int WasteAlerts, double EstimatedKwhToday, double EstimatedCarbonKg, double EstimatedWasteKwh, List<EnergyComputer> Computers, List<EnergyAlert> Alerts);
 public record EnergyComputer(string ComputerId, string Room, double CpuPercent, double Watts, double HoursObserved, double EstimatedKwhToday, string Status, string Condition);
 public record EnergyAlert(string ComputerId, string Message, string Severity);
+public record EnergyHistoryPoint(DateTime Date, double Kwh, int Alerts, double CarbonKg, double WasteKwh);
